@@ -1,24 +1,55 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from "next/server"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL as string,
-  process.env.SUPABASE_SERVICE_ROLE_KEY as string
-);
+// Define the expected response type from Portal API
+interface PortalClientResponse {
+  id: string
+  amount: number
+  currency: string
+  transaction_type: string
+  method: string
+  summary_status: string
+  created_at: string
+  updated_at: string
+}
+
+interface PortalApiResponse {
+  success: boolean
+  payload: PortalClientResponse
+}
 
 export async function GET(req: NextRequest) {
-    const payload = {
-        "success": true,
-        "payload": {
-            "id": "22183e8a-d2ce-41a8-80c0-617263b5efbc",
-            "amount": 100,
-            "currency": "MXN",
-            "transaction_type": "REDEMPTION",
-            "method": "BITSO_TRANSFER",
-            "summary_status": "IN_PROGRESS",
-            "created_at": "2025-07-10T12:04:20.33654403Z",
-            "updated_at": "2025-07-10T12:04:25.8267322Z"
-        }
+  try {
+    const requestBody = {
+      isAccountAbstracted: true,
     }
-    return NextResponse.json(payload, { status: 200 });
+
+    const response = await fetch("https://api.portalhq.io/api/v3/custodians/me/clients", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.PORTAL_TOKEN}`,
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Portal API responded with status: ${response.status}`)
+    }
+
+    const data: PortalApiResponse = await response.json()
+
+    console.log("Portal API Response:", JSON.stringify(data))
+
+    return NextResponse.json(data, { status: 200 })
+  } catch (error) {
+    console.error("Portal API Error:", error)
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 },
+    )
   }
+}
