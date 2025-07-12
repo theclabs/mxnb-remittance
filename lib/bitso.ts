@@ -373,7 +373,7 @@ export interface BitsoTrade {
    */
   export async function getBitsoOrderTrades(orderId: string): Promise<BitsoTrade[]> {
     const response: BitsoTradesResponse = await makeBitsoRequest(`order_trades/${orderId}`)
-    console.log("Order trades response:", response)
+    // console.log("Order trades response:", response)
     return response.payload
   }
   
