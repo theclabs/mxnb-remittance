@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -11,14 +11,27 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { signIn } from "@/lib/auth"
-import { Loader2 } from "lucide-react"
+import { Loader2, Mountain } from "lucide-react"
+import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
 
 export default function LoginPage() {
+  const {
+    setClientApiKey,
+    initializeWallet,
+    clientApiKey
+  } = usePortalWalletContext()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  
+  // useEffect(()=>{
+  //   if (!clientApiKey){
+  //     return;
+  //   }
+  //   initializeWallet();
+  // },[clientApiKey])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,7 +39,12 @@ export default function LoginPage() {
     setError("")
 
     try {
-      await signIn(email, password)
+      const {user} = await signIn(email, password)
+      console.log('Tiene cli_id', user?.user_metadata?.cli_id)
+      if (user.user_metadata?.cli_id){
+        console.log('Wallet configurada')
+        setClientApiKey(user.user_metadata?.cli_id)
+      }
       router.push("/dashboard")
     } catch (err: any) {
       setError(err.message || "Failed to sign in")

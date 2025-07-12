@@ -10,12 +10,19 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { getCurrentUser } from "@/lib/auth"
 import { ArrowLeft, Copy, ExternalLink, Wallet, QrCode } from "lucide-react"
+import QRCode from "react-qr-code";
 import Link from "next/link"
 import type { User } from "@/lib/auth"
-import {connectWallet, backUp} from "@/lib/portal"
+import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
 
 
 export default function DepositPage() {
+  const {
+    clientApiKey,
+    setClientApiKey,
+    initializeWallet,
+    eip155Address,
+  } = usePortalWalletContext()
   const [user, setUser] = useState<User | null>(null)
   const [copied, setCopied] = useState(false)
   const router = useRouter()
@@ -24,6 +31,10 @@ export default function DepositPage() {
     checkUser()
   }, [])
 
+  // useEffect(()=>{
+  //   initializeWallet()
+  // },[clientApiKey])
+
   const checkUser = async () => {
     try {
       const currentUser = await getCurrentUser()
@@ -31,6 +42,9 @@ export default function DepositPage() {
         router.push("/auth/login")
         return
       }
+      // if (currentUser?.cli_id){
+      //   setClientApiKey(currentUser?.cli_id)
+      // }
       setUser(currentUser)
     } catch (error) {
       router.push("/auth/login")
@@ -39,8 +53,6 @@ export default function DepositPage() {
 
   const copyToClipboard = async (text: string) => {
     try {
-      var a = await connectWallet()
-      console.log(a)
       await navigator.clipboard.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -69,7 +81,7 @@ export default function DepositPage() {
                 Back to Dashboard
               </Button>
             </Link>
-            <h1 className="text-xl font-semibold text-gray-900 ml-4">Deposit ETH</h1>
+            <h1 className="text-xl font-semibold text-gray-900 ml-4">Deposit MXNB / MXN</h1>
           </div>
         </div>
       </header>
@@ -81,14 +93,14 @@ export default function DepositPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Wallet className="h-5 w-5" />
-                Deposit ETH to Your Wallet
+                Deposit MXNB to Your Wallet
               </CardTitle>
-              <CardDescription>Send ETH to your wallet address on the Arbitrum network</CardDescription>
+              <CardDescription>Get discound this week starting from 10MXNB!</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <Alert>
                 <AlertDescription>
-                  <strong>Important:</strong> Only send ETH on the Arbitrum One network to this address. Sending from
+                  <strong>Important:</strong> Only send MXNB on the Arbitrum Sepolia network to this address. Sending from
                   other networks may result in loss of funds.
                 </AlertDescription>
               </Alert>
@@ -98,26 +110,14 @@ export default function DepositPage() {
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   Network Information
                   <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    Arbitrum One
+                    Arbitrum Sepolia
                   </Badge>
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Network Name:</span>
-                    <span>Arbitrum One</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Chain ID:</span>
-                    <span>42161</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Currency:</span>
-                    <span>ETH</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span className="text-muted-foreground">Block Explorer:</span>
                     <a
-                      href="https://arbiscan.io"
+                      href="https://sepolia.arbiscan.io/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline flex items-center gap-1"
@@ -133,7 +133,7 @@ export default function DepositPage() {
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Your Wallet Address</Label>
                 <div className="flex items-center gap-2 p-3 bg-gray-100 rounded-lg">
-                  <code className="flex-1 text-sm font-mono break-all">{"user.wallet_address"}</code>
+                  <code className="flex-1 text-sm font-mono break-all">{eip155Address}</code>
                   <Button variant="outline" size="sm" onClick={() => copyToClipboard("user.wallet_address")}>
                     {copied ? (
                       <span className="text-green-600">Copied!</span>
@@ -144,31 +144,28 @@ export default function DepositPage() {
                       </>
                     )}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => backUp()}>
-                    {copied ? (
-                      <span className="text-green-600">!</span>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4 mr-1" />
-                        back
-                      </>
-                    )}
-                  </Button>
                 </div>
               </div>
 
               {/* QR Code Placeholder */}
               <div className="text-center">
                 <div className="bg-gray-100 p-8 rounded-lg inline-block">
-                  <QrCode className="h-24 w-24 text-gray-400 mx-auto mb-2" />
+                  {eip155Address ? (
+                    <QRCode value={eip155Address} size={96} className="mx-auto mb-2" />
+                  ) : (
+                    <QrCode className="h-24 w-24 text-gray-400 mx-auto mb-2" />
+                  )}
+
                   <p className="text-sm text-gray-500">QR Code</p>
-                  <p className="text-xs text-gray-400">Scan to get wallet address</p>
+                  <p className="text-xs text-gray-400">
+                    {eip155Address ? "Scan to get verdadero address" : "Scan to get wallet address"}
+                  </p>
                 </div>
               </div>
 
               {/* Deposit Methods */}
               <div className="space-y-4">
-                <h4 className="font-medium">How to Deposit ETH</h4>
+                <h4 className="font-medium">How to Deposit MXNB</h4>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3 p-3 border rounded-lg">
                     <div className="bg-blue-100 p-1 rounded-full">
@@ -177,7 +174,7 @@ export default function DepositPage() {
                     <div>
                       <p className="font-medium">From Another Wallet</p>
                       <p className="text-sm text-gray-600">
-                        Send ETH from MetaMask, Trust Wallet, or any other wallet that supports Arbitrum
+                        Send MXNB from MetaMask, Trust Wallet, or any other wallet that supports Arbitrum
                       </p>
                     </div>
                   </div>
@@ -189,7 +186,7 @@ export default function DepositPage() {
                     <div>
                       <p className="font-medium">From an Exchange</p>
                       <p className="text-sm text-gray-600">
-                        Withdraw ETH from Binance, Coinbase, or other exchanges directly to Arbitrum
+                        Withdraw MXNB from Bitso, or other exchanges directly to Arbitrum
                       </p>
                     </div>
                   </div>
@@ -199,9 +196,9 @@ export default function DepositPage() {
                       <span className="text-blue-600 text-sm font-bold">3</span>
                     </div>
                     <div>
-                      <p className="font-medium">Bridge from Ethereum</p>
+                      <p className="font-medium">From bank transfers</p>
                       <p className="text-sm text-gray-600">
-                        Use the official Arbitrum bridge to transfer ETH from Ethereum mainnet
+                        Use CLABE to transfer MXN to your wallet to instan mint MXNB.
                       </p>
                     </div>
                   </div>
@@ -211,7 +208,7 @@ export default function DepositPage() {
               {/* Quick Links */}
               <div className="flex gap-2">
                 <a
-                  href={`https://arbiscan.io/address/${"user.wallet_address"}`}
+                  href={`https://sepolia.arbiscan.io/address/${eip155Address}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -243,7 +240,7 @@ export default function DepositPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-600">✓</span>
-                  Only send ETH on the Arbitrum One network (Chain ID: 42161)
+                  Only send MXNB on the Arbitrum Sepolia
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-600">✓</span>
