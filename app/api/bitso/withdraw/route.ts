@@ -1,4 +1,4 @@
-import { makeBitsoRequest } from "@/lib/bitso"
+import { getBitsoBalances, makeBitsoRequest } from "@/lib/bitso"
 import { NextResponse, type NextRequest } from "next/server"
 import type { BitsoWithdrawalResponse, WithdrawalMethodsResponse, WithdrawalRequest, WithdrawalResponse } from "./types"
 
@@ -109,6 +109,49 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("Processing ARS withdrawal:", { currency, amount: numericAmount, account_holder_name })
+
+    // Check if user has sufficient ARS balance
+    try {
+      console.log("Checking ARS balance...")
+      const balances = await getBitsoBalances()
+      const arsBalance = balances.find((b) => b.currency.toLowerCase() === "ars")
+
+      if (!arsBalance) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "No ARS balance found in account",
+          },
+          { status: 400 },
+        )
+      }
+
+      const availableBalance = Number.parseFloat(arsBalance.available)
+      console.log(`Available ARS balance: ${availableBalance}, Requested: ${numericAmount}`)
+
+      if (availableBalance < numericAmount) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Insufficient ARS balance. Available: ${availableBalance.toLocaleString()} ARS, Requested: ${numericAmount.toLocaleString()} ARS`,
+            available_balance: availableBalance,
+            requested_amount: numericAmount,
+          },
+          { status: 400 },
+        )
+      }
+
+      console.log("Balance check passed")
+    } catch (error) {
+      console.error("Error checking balance:", error)
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unable to verify account balance. Please try again later.",
+        },
+        { status: 500 },
+      )
+    }
 
     // First, get withdrawal methods to ensure we have the correct taxonomy
     let withdrawalMethods: WithdrawalMethodsResponse
