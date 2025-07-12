@@ -1,3 +1,4 @@
+import { calculateBitsoCrossRate, fetchBitsoTickers, findBitsoTicker } from "@/lib/bitso"
 import { NextResponse, type NextRequest } from "next/server"
 
 // Define the request body type for quote requests
@@ -5,24 +6,6 @@ interface QuoteRequest {
   from_currency: "ARS" | "MXN"
   to_currency: "ARS" | "MXN"
   amount: number
-}
-
-// Define Bitso API response types
-interface BitsoTicker {
-  book: string
-  volume: string
-  high: string
-  last: string
-  low: string
-  vwap: string
-  ask: string
-  bid: string
-  created_at: string
-}
-
-interface BitsoTickerResponse {
-  success: boolean
-  payload: BitsoTicker[]
 }
 
 // Define our quote response type
@@ -39,73 +22,6 @@ interface QuoteResponse {
     calculation_method: string
     timestamp: string
   }
-}
-
-// Helper function to fetch Bitso market data
-async function fetchBitsoTickers(): Promise<BitsoTicker[]> {
-  try {
-    const response = await fetch("https://api.bitso.com/v3/ticker/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`Bitso API error: ${response.status}`)
-    }
-
-    const data: BitsoTickerResponse = await response.json()
-
-    if (!data.success) {
-      throw new Error("Bitso API returned unsuccessful response")
-    }
-
-    return data.payload
-  } catch (error) {
-    console.error("Failed to fetch Bitso tickers:", error)
-    throw new Error("Failed to fetch market data from Bitso")
-  }
-}
-
-// Helper function to find ticker by book name
-function findTicker(tickers: BitsoTicker[], book: string): BitsoTicker | null {
-  return tickers.find((ticker) => ticker.book.toLowerCase() === book.toLowerCase()) || null
-}
-
-// Helper function to calculate cross rate
-function calculateCrossRate(
-  fromCurrency: string,
-  toCurrency: string,
-  amount: number,
-  usdArsRate: number,
-  usdMxnRate: number,
-): { toAmount: number; exchangeRate: number; calculationMethod: string } {
-  let toAmount: number
-  let exchangeRate: number
-  let calculationMethod: string
-
-  if (fromCurrency === "ARS" && toCurrency === "MXN") {
-    // ARS -> USD -> MXN
-    // 1 ARS = 1/usdArsRate USD
-    // 1 USD = usdMxnRate MXN
-    // So 1 ARS = (1/usdArsRate) * usdMxnRate MXN
-    exchangeRate = usdMxnRate / usdArsRate
-    toAmount = amount * exchangeRate
-    calculationMethod = "ARS -> USD -> MXN"
-  } else if (fromCurrency === "MXN" && toCurrency === "ARS") {
-    // MXN -> USD -> ARS
-    // 1 MXN = 1/usdMxnRate USD
-    // 1 USD = usdArsRate ARS
-    // So 1 MXN = (1/usdMxnRate) * usdArsRate ARS
-    exchangeRate = usdArsRate / usdMxnRate
-    toAmount = amount * exchangeRate
-    calculationMethod = "MXN -> USD -> ARS"
-  } else {
-    throw new Error("Invalid currency pair")
-  }
-
-  return { toAmount, exchangeRate, calculationMethod }
 }
 
 // POST /api/bitso/quote
@@ -169,8 +85,8 @@ export async function POST(request: NextRequest) {
     const tickers = await fetchBitsoTickers()
 
     // Find USD/ARS and USD/MXN rates
-    const usdArsTicker = findTicker(tickers, "usd_ars")
-    const usdMxnTicker = findTicker(tickers, "usd_mxn")
+    const usdArsTicker = findBitsoTicker(tickers, "usd_ars")
+    const usdMxnTicker = findBitsoTicker(tickers, "usd_mxn")
 
     if (!usdArsTicker) {
       return NextResponse.json(
@@ -199,7 +115,7 @@ export async function POST(request: NextRequest) {
     console.log("Market rates:", { usdArsRate, usdMxnRate })
 
     // Calculate cross rate
-    const { toAmount, exchangeRate, calculationMethod } = calculateCrossRate(
+    const { toAmount, exchangeRate, calculationMethod } = calculateBitsoCrossRate(
       from_currency,
       to_currency,
       amount,
@@ -286,8 +202,8 @@ export async function GET(request: NextRequest) {
 
       // Fetch market data
       const tickers = await fetchBitsoTickers()
-      const usdArsTicker = findTicker(tickers, "usd_ars")
-      const usdMxnTicker = findTicker(tickers, "usd_mxn")
+      const usdArsTicker = findBitsoTicker(tickers, "usd_ars")
+      const usdMxnTicker = findBitsoTicker(tickers, "usd_mxn")
 
       if (!usdArsTicker || !usdMxnTicker) {
         return NextResponse.json(
@@ -302,7 +218,7 @@ export async function GET(request: NextRequest) {
       const usdArsRate = (Number.parseFloat(usdArsTicker.bid) + Number.parseFloat(usdArsTicker.ask)) / 2
       const usdMxnRate = (Number.parseFloat(usdMxnTicker.bid) + Number.parseFloat(usdMxnTicker.ask)) / 2
 
-      const { toAmount, exchangeRate, calculationMethod } = calculateCrossRate(
+      const { toAmount, exchangeRate, calculationMethod } = calculateBitsoCrossRate(
         fromCurrency,
         toCurrency,
         amount,
@@ -328,8 +244,8 @@ export async function GET(request: NextRequest) {
 
     // Otherwise, return current market rates
     const tickers = await fetchBitsoTickers()
-    const usdArsTicker = findTicker(tickers, "usd_ars")
-    const usdMxnTicker = findTicker(tickers, "usd_mxn")
+    const usdArsTicker = findBitsoTicker(tickers, "usd_ars")
+    const usdMxnTicker = findBitsoTicker(tickers, "usd_mxn")
 
     const marketRates = {
       success: true,
