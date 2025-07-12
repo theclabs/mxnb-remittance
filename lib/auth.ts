@@ -1,16 +1,21 @@
 import { supabase, createServerClient } from "./supabase"
+import { getClientApi } from "@/lib/portal"
 
 export interface User {
   id: string
   email: string
   full_name: string
   phone?: string
+  cli_id?: string
 }
 
 export async function signUp(email: string, password: string, fullName: string, session:any): Promise<User> {
   if (session) {
     const {data, error} = await supabase.auth.updateUser({
       password,
+      data: {
+        cli_id: "",
+      },
     })
     if (error) throw error
     
@@ -37,6 +42,7 @@ export async function signUp(email: string, password: string, fullName: string, 
       options: {
         data: {
           full_name: fullName,
+          cli_id : ''
         },
       },
     })
@@ -113,16 +119,50 @@ export async function signUpOrUpdate(email: string, password: string, fullName: 
 }
 
 
-export async function signIn(email: string, password: string) {
+export async function signIn2(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
-
-  console.log(data)
-  console.log(error)
   if (error) throw error
+  console.log(data)
+
+  if (data?.user?.user_metadata?.cli_id ){
+    console.log("borrando cli!")
+    const api_res = await getClientApi()
+    const {data, error} = await supabase.auth.updateUser({
+      data: {
+        cli_id: api_res.clientApiKey,
+      },
+    })
+    if (error) throw error
+    return data
+  }
   return data
+}
+
+
+export async function signIn(email: string, password: string) {
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (signInError) throw signInError;
+  console.log(signInData);
+
+  if (!signInData?.user?.user_metadata?.cli_id) {
+    console.log("Agregando cli_id...");
+    const api_res = await getClientApi();
+    const { data: updateData, error: updateError } = await supabase.auth.updateUser({
+      data: {
+        cli_id: api_res.clientApiKey,
+      },
+    });
+    if (updateError) throw updateError;
+    return updateData;
+  }
+
+  return signInData;
 }
 
 export async function signOut() {
@@ -136,6 +176,7 @@ export async function getCurrentUser(): Promise<User | null> {
   } = await supabase.auth.getUser()
 
   if (!authUser) return null
+  const cli_id = authUser?.user_metadata?.cli_id;
 
   // Fetch user details from our public.users table
   const { data, error } = await supabase.from("users").select("*").eq("id", authUser.id).single()
@@ -144,6 +185,7 @@ export async function getCurrentUser(): Promise<User | null> {
     console.error("Error fetching user from public.users:", error)
     return null
   }
+  data.cli_id = cli_id
   return data
 }
 
