@@ -17,8 +17,15 @@ import { ArrowLeft, Loader2, Send, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import type { User } from "@/lib/auth"
 import type { TransactionStatus } from "@/lib/transaction-status"
+import {localGetQuote} from "@/lib/bitso"
+import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
 
 export default function SendMoneyPage() {
+    const {
+    sendTokens,
+    eip155Address,
+    mxnBalance   
+  } = usePortalWalletContext()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true) // Initial loading for user check
   const [formSubmitting, setFormSubmitting] = useState(false) // Separate loading for form submission
@@ -26,18 +33,34 @@ export default function SendMoneyPage() {
   const [success, setSuccess] = useState(false)
   const router = useRouter()
   const [recipientRegistered, setRecipientRegistered] = useState(false) // Declare recipientRegistered variable
+  const [quote, setQuote] = useState<QuoteResponse>()
 
   const [formData, setFormData] = useState({
     recipientName: "",
     recipientEmail: "",
     amount: "",
-    currency: "USD",
+    currency: "MXN",
     notes: "",
   })
 
   useEffect(() => {
     checkUser()
   }, [])
+
+  useEffect(()=>{
+    if (formData.amount && formData.currency){
+      const to_currency: "MXN" | "ARS" = formData.currency === "MXN" ? "ARS" : "MXN";
+      localGetQuote(formData.currency, to_currency, Number(formData.amount))
+      .then((resp)=>{
+        console.log(resp)
+        setQuote(resp)
+      })
+      .catch((e)=>{
+        console.error('Error Quote', e)
+      })
+    }
+  }, [formData.amount])
+
 
   const checkUser = async () => {
     try {
@@ -153,6 +176,7 @@ export default function SendMoneyPage() {
     }))
   }
 
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -260,7 +284,8 @@ export default function SendMoneyPage() {
                       type="number"
                       step="0.01"
                       min="1"
-                      placeholder="100.00"
+                      max={mxnBalance}
+                      placeholder={mxnBalance}
                       value={formData.amount}
                       onChange={(e) => handleInputChange("amount", e.target.value)}
                       required
@@ -273,10 +298,11 @@ export default function SendMoneyPage() {
                         <SelectValue placeholder="Select currency" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="USD">USD - US Dollar</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
-                        <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                        <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
+                        <SelectItem value="MXN">MXN - Mexican Peso</SelectItem>
+                        <SelectItem value="ARS">ARS - Argentinian Peso</SelectItem>
+                        <SelectItem disabled value="USD">USD - US Dollar ( coming soon! ) </SelectItem>
+                        <SelectItem disabled value="EUR">EUR - Euro ( coming soon! )</SelectItem>
+                        <SelectItem disabled value="BRL">BRL - Brazilian real ( coming soon! )</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -312,6 +338,12 @@ export default function SendMoneyPage() {
                       <span>Total:</span>
                       <span>
                         {formData.amount} {formData.currency}
+                      </span>
+                    </div>
+                    <div className="flex justify-between font-medium pt-2 border-t">
+                      <span>APROX:</span>
+                      <span>
+                        {quote?.payload.to_amount} {quote?.payload.to_currency}
                       </span>
                     </div>
                   </div>

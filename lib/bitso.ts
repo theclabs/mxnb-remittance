@@ -399,3 +399,29 @@ export interface BitsoTrade {
   
     return totalReceived
   }
+
+
+  /**
+   * LOCAL API - Calculate total amount received from an order's trades
+   */
+export async function localGetQuote (from_currency:string, to_currency:string, amount:number): Promise<QuoteResponse> {
+    try {
+      const response = await fetch('/api/bitso/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from_currency, to_currency, amount }),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Error ${response.status}: ${errorBody}`);
+      }
+
+      const data = await response.json();
+      return data;
+
+    } catch (error) {
+      console.error('Error fetching quote:', error);
+      throw error;
+    }
+}

@@ -8,21 +8,7 @@ interface QuoteRequest {
   amount: number
 }
 
-// Define our quote response type
-interface QuoteResponse {
-  success: boolean
-  payload: {
-    from_currency: string
-    to_currency: string
-    from_amount: number
-    to_amount: number
-    exchange_rate: number
-    usd_ars_rate: number
-    usd_mxn_rate: number
-    calculation_method: string
-    timestamp: string
-  }
-}
+
 
 // POST /api/bitso/quote
 export async function POST(request: NextRequest) {
@@ -56,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate currencies
-    const validCurrencies = ["ARS", "MXN"]
+    const validCurrencies = ["ARS", "MXN", "USD"]
     if (!validCurrencies.includes(from_currency) || !validCurrencies.includes(to_currency)) {
       return NextResponse.json(
         {

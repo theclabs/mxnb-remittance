@@ -8,14 +8,7 @@ import {
 } from "@/lib/bitso"
 import { NextResponse, type NextRequest } from "next/server"
 
-// Define the request body type for trade requests
-interface TradeRequest {
-  from_currency: "ARS" | "MXN"
-  to_currency: "ARS" | "MXN"
-  amount: number
-  type: "market" | "limit"
-  limit_price?: number // Only for limit orders
-}
+
 
 // Define our trade response type
 interface TradeResponse {

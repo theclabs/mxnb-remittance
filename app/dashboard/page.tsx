@@ -9,7 +9,7 @@ import { getCurrentUser, signOut } from "@/lib/auth"
 import { supabase } from "@/lib/supabase"
 import { ArrowUpRight, DollarSign, Send, User, LogOut, Plus } from "lucide-react"
 import Link from "next/link"
-import type { User as UserType } from "@/lib/auth"
+import { User as UserType, UpdateUserMetadata } from "@/lib/auth"
 // Import the transaction status utilities at the top:
 import { getStatusInfo, canUserTakeAction, type TransactionStatus } from "@/lib/transaction-status"
 import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
@@ -36,27 +36,23 @@ export default function DashboardPage() {
     initializeWallet,
     disconnectWallet,
     assets,
-    getAssets,
-    portal
-    
+    portal,
+    eip155Address,
+    mxnBalance   
   } = usePortalWalletContext()
   const [user, setUser] = useState<UserType | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
-  const [balance, setBalance] = useState<String | undefined>("0")
   const router = useRouter()
 
   useEffect(() => {
     checkUser()
-    setBalance('0')
   }, [])
 
   useEffect(()=>{
     if (!assets) {
       return;
     }
-    const mxnBalance = assets?.tokenBalances?.find(token => token.symbol === "MXNB")?.balance;
-    setBalance(mxnBalance)
   }, [assets])
 
   const checkUser = async () => {
@@ -152,7 +148,7 @@ export default function DashboardPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${balance ?  balance : 0}</div>
+              <div className="text-2xl font-bold">${mxnBalance ?  mxnBalance : 0}</div>
               <p className="text-xs text-muted-foreground">
               </p>
             </CardContent>

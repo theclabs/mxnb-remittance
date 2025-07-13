@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { getCurrentUser } from "@/lib/auth"
-import { ArrowLeft, Copy, ExternalLink, Wallet, QrCode } from "lucide-react"
+import { ArrowLeft, Copy, ExternalLink, Wallet, QrCode, BanknoteArrowUp  } from "lucide-react"
 import QRCode from "react-qr-code";
 import Link from "next/link"
 import type { User } from "@/lib/auth"
@@ -88,7 +88,7 @@ export default function DepositPage() {
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
-          {/* Deposit Instructions */}
+          {/* MXNB Deposit Instructions */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -129,12 +129,14 @@ export default function DepositPage() {
                 </div>
               </div>
 
+            {eip155Address ? (
+              <>
               {/* Wallet Address */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Your Wallet Address</Label>
                 <div className="flex items-center gap-2 p-3 bg-gray-100 rounded-lg">
                   <code className="flex-1 text-sm font-mono break-all">{eip155Address}</code>
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard("user.wallet_address")}>
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(eip155Address)}>
                     {copied ? (
                       <span className="text-green-600">Copied!</span>
                     ) : (
@@ -164,6 +166,7 @@ export default function DepositPage() {
               </div>
 
               {/* Deposit Methods */}
+              { /*
               <div className="space-y-4">
                 <h4 className="font-medium">How to Deposit MXNB</h4>
                 <div className="space-y-3">
@@ -179,6 +182,7 @@ export default function DepositPage() {
                     </div>
                   </div>
 
+                  
                   <div className="flex items-start gap-3 p-3 border rounded-lg">
                     <div className="bg-blue-100 p-1 rounded-full">
                       <span className="text-blue-600 text-sm font-bold">2</span>
@@ -202,8 +206,10 @@ export default function DepositPage() {
                       </p>
                     </div>
                   </div>
+                  
                 </div>
               </div>
+              */}
 
               {/* Quick Links */}
               <div className="flex gap-2">
@@ -224,6 +230,47 @@ export default function DepositPage() {
                   </Button>
                 </a>
               </div>
+              </>
+              ) : (
+                <div>Your Wallet its not ready, please wait</div>
+            )}
+            </CardContent>
+          </Card>
+
+          {/* SPEI to MXNB Deposit Instructions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BanknoteArrowUp className="h-5 w-5" />
+                Deposit via CLABE to get MXNB Into Your Wallet
+              </CardTitle>
+            <CardDescription>Inicial deposit can't be withdrawal before a cold off period of 24hs</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Wallet Address */}
+              {user.clabe ? (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Your Personal CLABE</Label>
+                <div className="flex items-center gap-2 p-3 bg-gray-100 rounded-lg">
+                  <code className="flex-1 text-sm font-mono break-all">{user.clabe}</code>
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(user.clabe ?? "")}>
+                    {copied ? (
+                      <span className="text-green-600">Clabe Copied!</span>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+              ) : (
+              <div className="p-3 bg-yellow-100 rounded-lg text-sm">
+                Your CLABE its not ready, please wait.
+                {JSON.stringify(user)}
+              </div>
+              )}
             </CardContent>
           </Card>
 

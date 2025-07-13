@@ -40,9 +40,10 @@ export default function LoginPage() {
 
     try {
       const {user} = await signIn(email, password)
-      console.log('Tiene cli_id', user?.user_metadata?.cli_id)
+      console.log('has cli_id', user?.user_metadata?.cli_id)
+      console.log('has clabe', user?.user_metadata?.clabe)
+      console.log('has wallet', user?.user_metadata?.wallet)
       if (user.user_metadata?.cli_id){
-        console.log('Wallet configurada')
         setClientApiKey(user.user_metadata?.cli_id)
       }
       router.push("/dashboard")

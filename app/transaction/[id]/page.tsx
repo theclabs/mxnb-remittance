@@ -15,23 +15,7 @@ import { ArrowLeft, Loader2, CreditCard, Building, AlertTriangle, Send } from "l
 import Link from "next/link"
 import type { User } from "@/lib/auth"
 
-interface Transaction {
-  id: string
-  sender_id: string
-  recipient_name: string
-  recipient_email: string
-  recipient_user_id?: string
-  amount: number
-  currency: string
-  status: TransactionStatus
-  reference_number: string
-  notes?: string
-  deposit_instructions?: string
-  deposit_bank_account?: string
-  deposit_reference?: string
-  claim_bank_details?: any
-  created_at: string
-}
+
 
 export default function TransactionDetailPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -39,11 +23,12 @@ export default function TransactionDetailPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState("")
-  const [bankDetails, setBankDetails] = useState({
+  const [bankDetails, setBankDetails] = useState<BankInfo>({
     accountNumber: "",
     routingNumber: "",
     bankName: "",
     accountHolderName: "",
+    country: ""
   })
   const router = useRouter()
   const params = useParams()
@@ -374,7 +359,7 @@ Important: Please include the reference number in your transfer memo to ensure p
                     <Label htmlFor="accountHolderName">Account Holder Name</Label>
                     <Input
                       id="accountHolderName"
-                      value={bankDetails.accountHolderName}
+                      value={bankDetails.accountHolderName || transaction.recipient_name}
                       onChange={(e) => setBankDetails((prev) => ({ ...prev, accountHolderName: e.target.value }))}
                       required
                     />
@@ -398,13 +383,20 @@ Important: Please include the reference number in your transfer memo to ensure p
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="routingNumber">Routing Number</Label>
-                    <Input
-                      id="routingNumber"
-                      value={bankDetails.routingNumber}
-                      onChange={(e) => setBankDetails((prev) => ({ ...prev, routingNumber: e.target.value }))}
+                  <Label htmlFor="country">Country</Label>
+                    <select
+                      id="country"
+                      value={bankDetails.country}
+                      onChange={(e) =>
+                        setBankDetails((prev) => ({ ...prev, country: e.target.value }))
+                      }
                       required
-                    />
+                      className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    >
+                      <option value="">Select a country</option>
+                      <option value="ARG">Argentina</option>
+                      <option value="MEX">Mexico</option>
+                    </select>
                   </div>
                 </div>
                 <Button
@@ -412,7 +404,7 @@ Important: Please include the reference number in your transfer memo to ensure p
                   disabled={
                     actionLoading ||
                     !bankDetails.accountNumber ||
-                    !bankDetails.routingNumber ||
+                    !bankDetails.country ||
                     !bankDetails.bankName ||
                     !bankDetails.accountHolderName
                   }

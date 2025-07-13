@@ -1,4 +1,7 @@
-export async function getClientApi():Promise<getPortalCliApiResponse> {
+/**
+ * LOCAL API - Create new Portal cli_id
+ */
+export async function getClientApi():Promise<newPortalCliResult> {
     try {
     const res = await fetch('/api/portal/client', {
       method: 'GET',
@@ -14,9 +17,10 @@ export async function getClientApi():Promise<getPortalCliApiResponse> {
 
     const data = await res.json();    
     console.log('cli creado', data);
-    return data;
+    return { data , error: null }
   } catch (error) {
     console.error('Error al crear cli', error);
+    return { data: null, error }
     throw error;
   }
 }

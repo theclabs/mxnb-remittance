@@ -1,5 +1,6 @@
 import { supabase, createServerClient } from "./supabase"
 import { getClientApi } from "@/lib/portal"
+import { getNewUserClabe } from '@/lib/juno'
 
 export interface User {
   id: string
@@ -7,6 +8,8 @@ export interface User {
   full_name: string
   phone?: string
   cli_id?: string
+  clabe?: string
+  wallet?: string
 }
 
 export async function signUp(email: string, password: string, fullName: string, session:any): Promise<User> {
@@ -119,27 +122,27 @@ export async function signUpOrUpdate(email: string, password: string, fullName: 
 }
 
 
-export async function signIn2(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-  if (error) throw error
-  console.log(data)
+// export async function signIn2(email: string, password: string) {
+//   const { data, error } = await supabase.auth.signInWithPassword({
+//     email,
+//     password,
+//   })
+//   if (error) throw error
+//   console.log(data)
 
-  if (data?.user?.user_metadata?.cli_id ){
-    console.log("borrando cli!")
-    const api_res = await getClientApi()
-    const {data, error} = await supabase.auth.updateUser({
-      data: {
-        cli_id: api_res.clientApiKey,
-      },
-    })
-    if (error) throw error
-    return data
-  }
-  return data
-}
+//   if (data?.user?.user_metadata?.cli_id ){
+//     console.log("borrando cli!")
+//     const api_res = await getClientApi()
+//     const {data, error} = await supabase.auth.updateUser({
+//       data: {
+//         cli_id: api_res.clientApiKey,
+//       },
+//     })
+//     if (error) throw error
+//     return data
+//   }
+//   return data
+// }
 
 
 export async function signIn(email: string, password: string) {
@@ -148,17 +151,31 @@ export async function signIn(email: string, password: string) {
     password,
   });
   if (signInError) throw signInError;
-  console.log(signInData);
+  var new_clabe, new_cli_id = null;
 
   if (!signInData?.user?.user_metadata?.cli_id) {
-    console.log("Agregando cli_id...");
-    const api_res = await getClientApi();
-    const { data: updateData, error: updateError } = await supabase.auth.updateUser({
-      data: {
-        cli_id: api_res.clientApiKey,
-      },
-    });
+    console.log("Insert cli_id...");
+    const {data, error} = await getClientApi();
+    console.log(data?.clientApiKey)
+    new_cli_id = data?.clientApiKey;
+  }
+
+  if (!signInData?.user?.user_metadata?.clabe) {
+    console.log("Insert Clabe...");
+    const { data, error } = await getNewUserClabe()
+    console.log(data?.clabe)
+    new_clabe = data?.clabe;
+  }
+  
+  if (new_cli_id || new_clabe) {
+    const data = {
+      ...(new_cli_id && { cli_id: new_cli_id }),
+      ...(new_clabe && { clabe: new_clabe }),
+    };
+
+    const { data: updateData, error: updateError } = await UpdateUserMetadata(data);
     if (updateError) throw updateError;
+    console.log('User updated with: ', data)
     return updateData;
   }
 
@@ -170,6 +187,10 @@ export async function signOut() {
   if (error) throw error
 }
 
+export async function UpdateUserMetadata(data: Record<string, any>): Promise<any> {
+  return await supabase.auth.updateUser({ data });
+}
+
 export async function getCurrentUser(): Promise<User | null> {
   const {
     data: { user: authUser },
@@ -177,6 +198,8 @@ export async function getCurrentUser(): Promise<User | null> {
 
   if (!authUser) return null
   const cli_id = authUser?.user_metadata?.cli_id;
+  const clabe = authUser?.user_metadata?.clabe;
+  const wallet = authUser?.user_metadata.wallet;
 
   // Fetch user details from our public.users table
   const { data, error } = await supabase.from("users").select("*").eq("id", authUser.id).single()
@@ -186,6 +209,8 @@ export async function getCurrentUser(): Promise<User | null> {
     return null
   }
   data.cli_id = cli_id
+  data.clabe = clabe
+  data.wallet = wallet
   return data
 }
 

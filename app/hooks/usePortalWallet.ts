@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Portal from "@portal-hq/web";
 
 
@@ -14,6 +14,7 @@ const rpcConfig = {
 export interface UsePortalWalletReturn {
   portal: Portal | undefined;
   eip155Address: string;
+  mxnBalance: string;
   assets: Assets | undefined;
   error: string | undefined;
   clientApiKey: string;
@@ -34,6 +35,7 @@ export function usePortalWallet(): UsePortalWalletReturn {
   const [assets, setAssets] = useState<Assets | undefined>(undefined);
   const [portal, setPortal] = useState<Portal | undefined>(undefined);
   const [eip155Address, setEip155Address] = useState<string>("");
+  const [mxnBalance, setMxnBalance] = useState<string>("0");
   const [error, setError] = useState<string | undefined>(undefined);
   const [clientApiKey, setClientApiKey] = useState<string>("");
 
@@ -41,6 +43,17 @@ export function usePortalWallet(): UsePortalWalletReturn {
   useEffect(() => {
     isConfigValid();
   }, []);
+
+  // When assets update, start pooling balance
+  useEffect(() => {
+    if (!portal) return;
+
+    const interval = setInterval(() => {
+      getAssets();
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [portal]);
 
   const isConfigValid = (): boolean => {
     if (!chainId) {
@@ -62,16 +75,24 @@ export function usePortalWallet(): UsePortalWalletReturn {
       chainId
     )) as unknown as Assets;
     setAssets(assets);
+    const balance = assets?.tokenBalances?.find(token => token.symbol === "MXNB")?.balance || "2";
+    setMxnBalance(balance);
     return assets;
   };
 
+  // Only update assets if changed
   const getAssets = async () => {
     if (!portal) return;
-    const assets = (await portal.getAssets(
+    const newassets = (await portal.getAssets(
       chainId
     )) as unknown as Assets;
-    setAssets(assets);
-    return assets;
+    if (JSON.stringify(newassets) !== JSON.stringify(assets)){
+      setAssets(newassets);
+      const balance = newassets?.tokenBalances?.find(token => token.symbol === "MXNB")?.balance || mxnBalance;
+      setMxnBalance(balance);
+      return newassets
+    }
+    return newassets;
   };
 
   const initializeWallet = async () => {
@@ -125,6 +146,7 @@ export function usePortalWallet(): UsePortalWalletReturn {
     setPortal(undefined);
     setEip155Address("");
     setAssets(undefined);
+    setMxnBalance("0")
   };
 
   const handleFundWallet = async () => {
@@ -195,6 +217,7 @@ export function usePortalWallet(): UsePortalWalletReturn {
   return {
     portal,
     eip155Address,
+    mxnBalance,
     assets,
     error,
     clientApiKey,

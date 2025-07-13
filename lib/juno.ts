@@ -88,3 +88,30 @@ export async function makeJunoRequest<T = any>(
 
   return response.json()
 }
+
+
+  /**
+   * LOCAL API - Calculate total amount received from an order's trades
+   */
+export async function getNewUserClabe (): Promise<UserClabeResult> {
+    try {
+      const response = await fetch('/api/juno/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Error ${response.status}: ${errorBody}`);
+      }
+
+      const resp = await response.json();
+      
+      return { data: resp.payload , error: null }
+
+    } catch (error) {
+      console.error('Error fetching quote:', error);
+      return { data: null , error }
+    }
+}
