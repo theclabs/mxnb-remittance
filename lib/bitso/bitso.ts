@@ -1,4 +1,5 @@
 import crypto from "crypto"
+import url from 'url'
 
 interface BitsoAuthParams {
   method: string
@@ -75,10 +76,17 @@ export function generateBitsoAuthHeader({ method, pathname, payload = "" }: Bits
   }
 
   // Generate nonce (timestamp in milliseconds)
-  const nonce = Date.now()
+  const nonce = String(Date.now())
+
+  console.log(nonce)
+  console.log(method)
+  console.log(pathname)
 
   // Create the data string to sign: nonce + method + pathname + payload
-  const dataToSign = `${nonce}${method.toUpperCase()}${pathname}${payload}`
+  let dataToSign = nonce + method + "/api/v3/withdrawals"
+  if (payload && method === 'POST') {
+    dataToSign += payload
+  }
 
   // Generate HMAC-SHA256 signature
   const signature = crypto.createHmac("sha256", bitsoSecret).update(dataToSign).digest("hex")
@@ -92,12 +100,13 @@ export function generateBitsoAuthHeader({ method, pathname, payload = "" }: Bits
 /**
  * Helper function to generate auth header from a full URL and request details
  */
-export function generateBitsoAuthFromUrl(url: string, method: string, payload = ""): string {
-  const urlObj = new URL(url)
+export function generateBitsoAuthFromUrl(burl: string, method: string, payload = ""): string {
+  const parsedUrl = new url.URL(burl); // Parse the URL
+  const requestPath = parsedUrl.search ? `${parsedUrl.pathname}${parsedUrl.search}` : parsedUrl.pathname;
 
   return generateBitsoAuthHeader({
     method,
-    pathname: urlObj.pathname,
+    pathname: requestPath,
     payload,
   })
 }
@@ -119,20 +128,20 @@ export async function makeBitsoRequest<T = any>(
   // Use staging or production API
 //   const baseUrl = useStaging ? "https://api-dev.bitso.com" : "https://api.bitso.com"
   const baseUrl = useStaging ? "https://stage.bitso.com" : "https://api.bitso.com"
-  const url = `${baseUrl}/v3/${endpoint}`
+  const url = `${baseUrl}/api/v3/${endpoint}`
 
   // Serialize body if it's an object
   const payload = body ? JSON.stringify(body) : ""
 
   // Generate auth header
   const authHeader = generateBitsoAuthFromUrl(url, method, payload)
-
+  console.dir(authHeader)
   // Make the request
   const response = await fetch(url, {
     method,
     headers: {
+      "Authorization": authHeader,
       "Content-Type": "application/json",
-      Authorization: authHeader,
       ...headers,
     },
     body: payload || undefined,
@@ -140,7 +149,8 @@ export async function makeBitsoRequest<T = any>(
 
   if (!response.ok) {
     const errorText = await response.text()
-    throw new Error(`Bitso API error (${response.status}): ${errorText}`)
+    throw new Error(`Bitso API error (${response.status}): `)
+    // throw new Error(`Bitso API error (${response.status}): ${errorText}`)
   }
 
   return response.json()
