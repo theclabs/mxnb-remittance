@@ -1,4 +1,4 @@
-import { getBitsoBalances, makeBitsoRequest } from "@/lib/bitso"
+import { getBitsoBalances, makeBitsoRequest } from "@/lib/bitso/bitso"
 import { NextResponse, type NextRequest } from "next/server"
 import type { BitsoWithdrawalResponse, WithdrawalMethodsResponse, WithdrawalRequest, WithdrawalResponse } from "./types"
 

@@ -5,7 +5,7 @@ import {
     waitForBitsoOrderTrades,
     type BitsoOrder,
     type BitsoTrade
-} from "@/lib/bitso"
+} from "@/lib/bitso/bitso"
 import { NextResponse, type NextRequest } from "next/server"
 
 

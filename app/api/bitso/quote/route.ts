@@ -1,4 +1,4 @@
-import { calculateBitsoCrossRate, fetchBitsoTickers, findBitsoTicker } from "@/lib/bitso"
+import { calculateBitsoCrossRate, fetchBitsoTickers, findBitsoTicker } from "@/lib/bitso/bitso"
 import { NextResponse, type NextRequest } from "next/server"
 
 // Define the request body type for quote requests

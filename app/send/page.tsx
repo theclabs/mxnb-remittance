@@ -2,23 +2,23 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getCurrentUser, checkUserExistsByEmail, inviteUserForTransaction } from "@/lib/auth"
-import { supabase } from "@/lib/supabase"
-import { ArrowLeft, Loader2, Send, AlertTriangle } from "lucide-react"
-import Link from "next/link"
+import { Textarea } from "@/components/ui/textarea"
 import type { User } from "@/lib/auth"
+import { checkUserExistsByEmail, getCurrentUser, inviteUserForTransaction } from "@/lib/auth"
+import { localGetQuote } from "@/lib/bitso/bitso"
+import { supabase } from "@/lib/supabase"
 import type { TransactionStatus } from "@/lib/transaction-status"
-import {localGetQuote} from "@/lib/bitso"
-import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
+import { AlertTriangle, ArrowLeft, Loader2, Send } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export default function SendMoneyPage() {
     const {
