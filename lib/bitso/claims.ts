@@ -46,9 +46,10 @@ export interface BitsoWithdrawalRequest {
   currency: string
   amount: string
   asset: string
-  method: string
+  method?: string
   network?: string
   protocol?: string
+  integration?: string
   beneficiary?: string
   recipient_name?: string
   cvu?: string
@@ -195,9 +196,10 @@ export async function withdrawMxnToBank(
     currency: "mxn",
     amount: amount.toString(),
     asset: "mxn",
-    method: "spei",
+    // method: "spei",
     network: "spei",
     protocol: "clabe",
+    integration: "praxis",
     beneficiary: accountHolderName,
     clabe: clabe,
     max_fee: "0",
@@ -260,7 +262,7 @@ export async function withdrawArsToBank(
     protocol: "cvu",
     recipient_name: accountHolderName,
     cvu: accountNumber,
-    max_fee: "0",
+    // max_fee: "0",
     origin_id: originId,
     description: `ARS withdrawal for claim`,
   }

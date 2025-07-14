@@ -137,7 +137,7 @@ export async function makeBitsoRequest<T = any>(
   const authHeader = generateBitsoAuthFromUrl(url, method, payload)
   console.dir(authHeader)
   // Make the request
-  console.dir(payload)
+  console.log(payload)
   const response = await fetch(url, {
     method,
     headers: {
