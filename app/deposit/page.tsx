@@ -9,11 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { getCurrentUser } from "@/lib/auth"
-import { ArrowLeft, Copy, ExternalLink, Wallet, QrCode, BanknoteArrowUp  } from "lucide-react"
+import { ArrowLeft, Copy, ExternalLink, Wallet, QrCode, BanknoteArrowUp , PlayCircle, Banknote } from "lucide-react"
 import QRCode from "react-qr-code";
 import Link from "next/link"
 import type { User } from "@/lib/auth"
 import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
+import { makeMockRequest } from '@/lib/bitso'
 
 
 export default function DepositPage() {
@@ -25,6 +26,8 @@ export default function DepositPage() {
   } = usePortalWalletContext()
   const [user, setUser] = useState<User | null>(null)
   const [copied, setCopied] = useState(false)
+  const [mocksuccess, setMocksuccess] = useState(false)
+  const [mockerror, setMockerror] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -59,6 +62,35 @@ export default function DepositPage() {
     } catch (error) {
       console.error("Failed to copy:", error)
     }
+  }
+
+  const mockClabeDeposit = async (senderClabe:string, senderWallet:string, senderEmail:string) => {
+    fetch('api/bitso/mock', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender_clabe: senderClabe,
+      sender_email: senderEmail
+    }),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      setMocksuccess(true)
+      setTimeout(() => setMocksuccess(false), 2000)
+      console.log('Respuesta del backend:', data);
+    })
+    .catch(error => {
+      setMockerror(true)
+      setTimeout(() => setMockerror(false), 2000)
+      console.error('Error al llamar el proxy:', error);
+    });
   }
 
   if (!user) {
@@ -242,7 +274,7 @@ export default function DepositPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BanknoteArrowUp className="h-5 w-5" />
-                Deposit via CLABE to get MXNB Into Your Wallet
+                Deposit via CLABE to get MXNB Into Your Wallet - MIN 101 MXN
               </CardTitle>
             <CardDescription>Inicial deposit can't be withdrawal before a cold off period of 24hs</CardDescription>
             </CardHeader>
@@ -258,12 +290,28 @@ export default function DepositPage() {
                       <span className="text-green-600">Clabe Copied!</span>
                     ) : (
                       <>
-                        <Copy className="h-4 w-4 mr-1" />
+                        <Copy  className="h-4 w-4 mr-1" />
                         Copy
                       </>
                     )}
                   </Button>
                 </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => mockClabeDeposit(user.clabe as string, user.wallet as string, user.email)}
+              >
+                {mocksuccess ? (
+                  <span className="text-green-600">Success!</span>
+                ) : mockerror ? (
+                  <span className="text-red-600">Error</span>
+                ) : (
+                  <span className="flex items-center text-neutral-600">
+                    <Banknote className="h-4 w-4 mr-1" />
+                    Send 101$ mock deposit
+                  </span>
+                )}
+              </Button>
               </div>
               ) : (
               <div className="p-3 bg-yellow-100 rounded-lg text-sm">

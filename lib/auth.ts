@@ -199,7 +199,7 @@ export async function getCurrentUser(): Promise<User | null> {
   if (!authUser) return null
   const cli_id = authUser?.user_metadata?.cli_id;
   const clabe = authUser?.user_metadata?.clabe;
-  const wallet = authUser?.user_metadata.wallet;
+  const wallet = authUser?.user_metadata?.wallet;
 
   // Fetch user details from our public.users table
   const { data, error } = await supabase.from("users").select("*").eq("id", authUser.id).single()

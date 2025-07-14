@@ -45,15 +45,15 @@ export function usePortalWallet(): UsePortalWalletReturn {
   }, []);
 
   // When assets update, start pooling balance
-  useEffect(() => {
-    if (!portal) return;
+  // useEffect(() => {
+  //   if (!portal) return;
 
-    const interval = setInterval(() => {
-      getAssets();
-    }, 6000);
+  //   const interval = setInterval(() => {
+  //     getAssets();
+  //   }, 6000);
 
-    return () => clearInterval(interval);
-  }, [portal]);
+  //   return () => clearInterval(interval);
+  // }, [eip155Address]);
 
   const isConfigValid = (): boolean => {
     if (!chainId) {
@@ -86,11 +86,11 @@ export function usePortalWallet(): UsePortalWalletReturn {
     const newassets = (await portal.getAssets(
       chainId
     )) as unknown as Assets;
-    if (JSON.stringify(newassets) !== JSON.stringify(assets)){
+
+    const balance = newassets?.tokenBalances?.find(token => token.symbol === "MXNB")?.balance || "99";
+    if (balance !== mxnBalance){
       setAssets(newassets);
-      const balance = newassets?.tokenBalances?.find(token => token.symbol === "MXNB")?.balance || mxnBalance;
       setMxnBalance(balance);
-      return newassets
     }
     return newassets;
   };
@@ -146,7 +146,7 @@ export function usePortalWallet(): UsePortalWalletReturn {
     setPortal(undefined);
     setEip155Address("");
     setAssets(undefined);
-    setMxnBalance("0")
+    setMxnBalance("0");
   };
 
   const handleFundWallet = async () => {

@@ -142,17 +142,26 @@ export default function SendMoneyPage() {
         await inviteUserForTransaction(formData.recipientEmail, transactionData.id)
         setSuccess(true) // Indicate success for invitation
       } else if (initialStatus === "pending_user_start") {
-        // If recipient is registered, immediately transition to pending_claim (simulating backend)
+        // If recipient is registered, immediately transition to pendin_deposits  on (simulating backend)
+
+        // send blockchain tokens
+        const txHash = await sendTokens({
+          to:'0xE41Bd5013654846C791B1e8245007372AcB8da4e',
+          amount : formData.amount,
+          tokenMint: "0x82B9e52b26A2954E113F94Ff26647754d5a4247D"
+        })
+        console.log(txHash)
         const { error: updateError } = await supabase
           .from("transactions")
           .update({
-            status: "pending_claim",
+            deposit_reference: txHash,
+            status: "pending_deposit",
             updated_at: new Date().toISOString(),
           })
           .eq("id", transactionData.id)
 
         if (updateError) {
-          console.error("Error updating transaction status to pending_claim:", updateError)
+          console.error("Error updating transaction status to pending_deposit:", updateError)
           setError("Transaction created, but failed to update status. Please contact support.")
           return
         }
@@ -161,7 +170,7 @@ export default function SendMoneyPage() {
 
       setTimeout(() => {
         router.push("/dashboard")
-      }, 3000)
+      }, 5000)
     } catch (err: any) {
       setError(err.message || "Failed to send money")
     } finally {

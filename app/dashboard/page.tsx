@@ -35,11 +35,45 @@ export default function DashboardPage() {
   const {
     initializeWallet,
     disconnectWallet,
-    assets,
     portal,
     eip155Address,
-    mxnBalance   
-  } = usePortalWalletContext()
+    mxnBalance,
+    assets,
+    sendTokens
+  } = usePortalWalletContext();
+
+   useEffect(()=>{
+    if (!portal) return;
+
+    if (!user?.wallet) {
+      const data = {
+        wallet : eip155Address
+      }
+      UpdateUserMetadata(data)
+      .then(()=>{
+        console.log('userUpdated')
+        return getCurrentUser()
+      })
+      .then((u)=>{
+        console.log(u)
+        setUser(u)
+      })
+    }
+
+      // sendTokens({
+      //   to:'0xE41Bd5013654846C791B1e8245007372AcB8da4e',
+      //   amount : "1.23",
+      //   tokenMint: "0x82B9e52b26A2954E113F94Ff26647754d5a4247D"
+      // }).then((r)=>{
+      //   console.log(r)
+      // })
+      // .catch((e)=>{
+      //   console.log(e)
+      // })
+
+
+    },[eip155Address])
+  
   const [user, setUser] = useState<UserType | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
@@ -49,11 +83,6 @@ export default function DashboardPage() {
     checkUser()
   }, [])
 
-  useEffect(()=>{
-    if (!assets) {
-      return;
-    }
-  }, [assets])
 
   const checkUser = async () => {
     try {

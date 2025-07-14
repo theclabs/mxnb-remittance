@@ -67,8 +67,8 @@ export interface BitsoTickerResponse {
  */
 export function generateBitsoAuthHeader({ method, pathname, payload = "" }: BitsoAuthParams): string {
   // Get environment variables
-  const bitsoKey = process.env.BITSO_API_KEY
-  const bitsoSecret = process.env.BITSO_API_SECRET
+  const bitsoKey = process.env.JUNO_TOKEN;
+  const bitsoSecret = process.env.JUNO_SECRET;
 
   if (!bitsoKey || !bitsoSecret) {
     throw new Error("BITSO_API_KEY and BITSO_API_SECRET environment variables are required")
@@ -120,6 +120,51 @@ export async function makeBitsoRequest<T = any>(
 //   const baseUrl = useStaging ? "https://api-dev.bitso.com" : "https://api.bitso.com"
   const baseUrl = useStaging ? "https://stage.bitso.com" : "https://api.bitso.com"
   const url = `${baseUrl}/v3/${endpoint}`
+
+  // Serialize body if it's an object
+  const payload = body ? JSON.stringify(body) : ""
+
+  // Generate auth header
+  const authHeader = generateBitsoAuthFromUrl(url, method, payload)
+
+  // Make the request
+  const response = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: authHeader,
+      ...headers,
+    },
+    body: payload || undefined,
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Bitso API error (${response.status}): ${errorText}`)
+  }
+
+  return response.json()
+}
+
+
+/**
+ * Type-safe wrapper for making authenticated Bitso API requests MOCK ONLY
+ */
+export async function makeMockRequest<T = any>(
+  endpoint: string,
+  options: {
+    method?: string
+    body?: any
+    headers?: Record<string, string>
+    useStaging?: boolean
+  } = {},
+): Promise<T> {
+  const { method = "GET", body, headers = {}, useStaging = true } = options
+
+  // Use staging or production API
+//   const baseUrl = useStaging ? "https://api-dev.bitso.com" : "https://api.bitso.com"
+  const baseUrl = useStaging ? "https://stage.bitso.com" : "https://api.bitso.com"
+  const url = `${baseUrl}/${endpoint}`
 
   // Serialize body if it's an object
   const payload = body ? JSON.stringify(body) : ""
