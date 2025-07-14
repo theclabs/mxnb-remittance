@@ -55,7 +55,6 @@ export default function DashboardPage() {
         return getCurrentUser()
       })
       .then((u)=>{
-        console.log(u)
         setUser(u)
       })
     }
