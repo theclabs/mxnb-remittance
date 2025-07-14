@@ -7,19 +7,22 @@ const supabase = createClient(
 );
 
 export async function POST(req: NextRequest) {
-  const { email, transactionId} = await req.json();
+  const { payload, event} = await req.json();
+  // validar y siempre responder status 204 / 201 y continuar.
 
-  if (!email || typeof email !== 'string') {
-    return NextResponse.json({ error: 'Email inválido o faltante' }, { status: 400 });
-  }
+  // verificar type y status: 
+  // type SPEI / blockchain 
 
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/signup?transactionId=${transactionId}&email=${email}`,
-  })
+  // SPEI - obtener usuario asociado. -. obtener wallet blockchain, enviar monto fin
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  // blockchain -- obtener wallet remitente -. obtener usuario asociado:
+
+  // si tiene una transaccion saliente por el monto indicado, asociar y cambiar stado de tx - . iniciar remesa
+  // supabase.admin....
+
+  // si no hay nada a que asociar,  es retiro a cuenta propia -- inciar retiro a su clabe asociada.
+
+  // https://webhook.site/#!/view/eddef20e-2c47-40e7-84d9-07159d92d3e2/
 
   return NextResponse.json({ success: true });
 }
