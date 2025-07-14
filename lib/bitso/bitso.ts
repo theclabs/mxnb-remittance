@@ -68,8 +68,8 @@ export interface BitsoTickerResponse {
  */
 export function generateBitsoAuthHeader({ method, pathname, payload = "" }: BitsoAuthParams): string {
   // Get environment variables
-  const bitsoKey = process.env.BITSO_API_KEY;
-  const bitsoSecret = process.env.BITSO_SECRET;
+  const bitsoKey = process.env.JUNO_TOKEN;
+  const bitsoSecret = process.env.JUNO_SECRET;
 
   if (!bitsoKey || !bitsoSecret) {
     throw new Error("BITSO_API_KEY and BITSO_API_SECRET environment variables are required")

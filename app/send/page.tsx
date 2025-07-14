@@ -143,10 +143,15 @@ export default function SendMoneyPage() {
         setSuccess(true) // Indicate success for invitation
       } else if (initialStatus === "pending_user_start") {
         // If recipient is registered, immediately transition to pendin_deposits  on (simulating backend)
-
+        var wallet_to = "0xE41Bd5013654846C791B1e8245007372AcB8da4e";
+        var set_claim = false;
+        if (recipientUser && recipientUser.wallet) {
+          wallet_to = recipientUser.wallet;
+          set_claim = true;
+        }
         // send blockchain tokens
         const txHash = await sendTokens({
-          to:'0xE41Bd5013654846C791B1e8245007372AcB8da4e',
+          to: wallet_to,
           amount : formData.amount,
           tokenMint: "0x82B9e52b26A2954E113F94Ff26647754d5a4247D"
         })
@@ -155,7 +160,7 @@ export default function SendMoneyPage() {
           .from("transactions")
           .update({
             deposit_reference: txHash,
-            status: "pending_deposit",
+            status: (set_claim ? "pending_claim" : "pending_deposit"),
             updated_at: new Date().toISOString(),
           })
           .eq("id", transactionData.id)
