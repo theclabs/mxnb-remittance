@@ -1,5 +1,5 @@
+import { makeMockRequest } from '@/lib/bitso/bitso';
 import { NextRequest, NextResponse } from 'next/server';
-import {makeMockRequest} from '@/lib/bitso'
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
