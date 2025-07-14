@@ -75,7 +75,7 @@ export function usePortalWallet(): UsePortalWalletReturn {
       chainId
     )) as unknown as Assets;
     setAssets(assets);
-    const balance = assets?.tokenBalances?.find(token => token.symbol === "MXNB")?.balance || "2";
+    const balance = assets?.tokenBalances?.find(token => token.symbol === "MXNB")?.balance || "0";
     setMxnBalance(balance);
     return assets;
   };
@@ -87,7 +87,7 @@ export function usePortalWallet(): UsePortalWalletReturn {
       chainId
     )) as unknown as Assets;
 
-    const balance = newassets?.tokenBalances?.find(token => token.symbol === "MXNB")?.balance || "99";
+    const balance = newassets?.tokenBalances?.find(token => token.symbol === "MXNB")?.balance || "0";
     if (balance !== mxnBalance){
       setAssets(newassets);
       setMxnBalance(balance);
