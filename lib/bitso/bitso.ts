@@ -70,6 +70,7 @@ export function generateBitsoAuthHeader({ method, pathname, payload = "" }: Bits
   // Get environment variables
   const bitsoKey = process.env.BITSO_API_KEY
   const bitsoSecret = process.env.BITSO_API_SECRET
+  console.log(bitsoKey, bitsoSecret)
 
   if (!bitsoKey || !bitsoSecret) {
     throw new Error("BITSO_API_KEY and BITSO_API_SECRET environment variables are required")
@@ -83,10 +84,10 @@ export function generateBitsoAuthHeader({ method, pathname, payload = "" }: Bits
   console.log(pathname)
 
   // Create the data string to sign: nonce + method + pathname + payload
-  let dataToSign = nonce + method + "/api/v3/withdrawals"
-  if (payload && method === 'POST') {
-    dataToSign += payload
-  }
+  let dataToSign = nonce + method + pathname + payload
+  // if (payload && method === 'POST') {
+  //   dataToSign += payload
+  // }
 
   // Generate HMAC-SHA256 signature
   const signature = crypto.createHmac("sha256", bitsoSecret).update(dataToSign).digest("hex")
@@ -103,7 +104,7 @@ export function generateBitsoAuthHeader({ method, pathname, payload = "" }: Bits
 export function generateBitsoAuthFromUrl(burl: string, method: string, payload = ""): string {
   const parsedUrl = new url.URL(burl); // Parse the URL
   const requestPath = parsedUrl.search ? `${parsedUrl.pathname}${parsedUrl.search}` : parsedUrl.pathname;
-
+  console.log(burl)
   return generateBitsoAuthHeader({
     method,
     pathname: requestPath,
