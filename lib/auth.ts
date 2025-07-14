@@ -215,12 +215,22 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 export async function checkUserExistsByEmail(email: string): Promise<User | null> {
-  const { data, error } = await supabase.from("users").select("*").eq("email", email).single()
-  if (error && error.code !== "PGRST116") {
+  const { data: data1, error: error1 } = await supabase.from("users").select("*").eq("email", email).single()
+  if (error1 && error1.code !== "PGRST116") {
     // PGRST116 means no rows found, which is expected for unregistered users
-    throw error
+    throw error1
   }
-  return data
+  // move to server side.
+  const supa = createServerClient() 
+  const { data, error } = await supa.auth.admin.listUsers()
+  if (error) { 
+    return null 
+  }else{
+    // Find user with matching wallet_address in user_metadata
+    const user = data.users.find((user) => user.email === email)
+    data1.wallet = user?.user_metadata?.wallet;
+  }
+  return data1
 }
 
 export async function inviteUserForTransaction(email: string, transactionId: string) {
