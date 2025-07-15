@@ -38,8 +38,6 @@ export default function DashboardPage() {
     portal,
     eip155Address,
     mxnBalance,
-    assets,
-    sendTokens
   } = usePortalWalletContext();
 
    useEffect(()=>{
