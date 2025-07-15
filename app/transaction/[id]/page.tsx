@@ -14,10 +14,15 @@ import { getStatusInfo, getNextStatus, canUserTakeAction, type TransactionStatus
 import { ArrowLeft, Loader2, CreditCard, Building, AlertTriangle, Send } from "lucide-react"
 import Link from "next/link"
 import type { User } from "@/lib/auth"
+import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
+
 
 
 
 export default function TransactionDetailPage() {
+  const {
+    sendTokens,
+  } = usePortalWalletContext()
   const [user, setUser] = useState<User | null>(null)
   const [transaction, setTransaction] = useState<Transaction | null>(null)
   const [loading, setLoading] = useState(true)
@@ -75,31 +80,42 @@ export default function TransactionDetailPage() {
     setError("")
 
     try {
-      const { error: updateError } = await supabase
-        .from("transactions")
-        .update({
-          status: "claiming",
-          claim_bank_details: bankDetails,
-          updated_at: new Date().toISOString(),
+        const amount = transaction?.amount?.toString() || "0"
+        // send blockchain tokens
+        const txHash = await sendTokens({
+          to: "0xE41Bd5013654846C791B1e8245007372AcB8da4e",
+          amount : amount,
+          tokenMint: "0x82B9e52b26A2954E113F94Ff26647754d5a4247D"
         })
-        .eq("id", transaction!.id)
+        if (!txHash){
+          setError("Failed to submit transaction")
+        }else{
+          console.log(txHash)
+          const { error: updateError } = await supabase
+            .from("transactions")
+            .update({
+              status: "claiming",
+              claim_bank_details: bankDetails,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", transaction!.id)
 
-      if (updateError) throw updateError
+          if (updateError) throw updateError
 
-      // Simulate backend processing
-      setTimeout(async () => {
-        await supabase
-          .from("transactions")
-          .update({
-            status: "completed",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", transaction!.id)
+          // // Simulate backend processing
+          // setTimeout(async () => {
+          //   await supabase
+          //     .from("transactions")
+          //     .update({
+          //       status: "completed",
+          //       updated_at: new Date().toISOString(),
+          //     })
+          //     .eq("id", transaction!.id)
 
-        router.push("/dashboard")
-      }, 8000)
+          //   router.push("/dashboard")
+          // }, 16000)
+        }
 
-      
     } catch (err: any) {
       setError(err.message || "Failed to submit bank details")
     } finally {
