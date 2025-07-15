@@ -18,6 +18,7 @@ export interface ClaimTransaction {
     accountNumber?: string
     bank_code?: string
     account_type: string
+    country?: string
   }
   metadata?: Record<string, any>
 }
@@ -239,8 +240,8 @@ export async function withdrawArsToBank(
     throw new Error("Bank details are required for ARS withdrawal")
   }
 
-  const { accountHolderName, cvu, cbu } = bankDetails
-  const accountNumber = cvu || cbu
+  const { accountHolderName, cvu, cbu, accountNumber } = bankDetails
+  const clabe = cvu || cbu || accountNumber
 
   if (!accountHolderName || !accountNumber) {
     throw new Error("Account holder name and CVU/CBU are required for ARS withdrawal")
@@ -261,7 +262,7 @@ export async function withdrawArsToBank(
     network: "coelsa",
     protocol: "cvu",
     recipient_name: accountHolderName,
-    cvu: accountNumber,
+    cvu: clabe,
     // max_fee: "0",
     origin_id: originId,
     description: `ARS withdrawal for claim`,
@@ -281,7 +282,7 @@ export async function withdrawArsToBank(
             status: "complete",
             created_at: new Date().toISOString(),
             currency: "ars",
-            method: "coealsa",
+            method: "coelsa",
             amount: amount.toString(),
             asset: "ars",
             details: {
@@ -350,21 +351,20 @@ export async function processClaim(transaction: ClaimTransaction): Promise<void>
     const burnResponse = await burnMxnbTokens(numericAmount)
 
     await updateTransactionStatus(id, "processing", {
-    //   id: burnResponse.payload.id,
     })
 
     // Step 2: Handle currency-specific processing
     let finalAmount = numericAmount
     let withdrawalResponse: BitsoWithdrawalResponse
 
-    if (currency === "ARS") {
+    if (bank_details?.country === "ARG") {
       console.log("Step 2a: Trading MXN to ARS...")
       const tradeResult = await executeMxnArsTrade(numericAmount)
       finalAmount = tradeResult.to_amount
 
       console.log("Step 2b: Withdrawing ARS to bank...")
       withdrawalResponse = await withdrawArsToBank(finalAmount, bank_details)
-    } else if (currency === "MXN") {
+    } else if (bank_details?.country === "MEX") {
       console.log("Step 2: Withdrawing MXN to bank...")
       withdrawalResponse = await withdrawMxnToBank(numericAmount, bank_details)
     } else {
@@ -374,10 +374,8 @@ export async function processClaim(transaction: ClaimTransaction): Promise<void>
     // Step 3: Mark as completed
     console.log("Step 3: Marking transaction as completed...")
     await updateTransactionStatus(id, "completed", {
-    //   id: burnResponse.payload.id,
+      claim_bank_account: bank_details?.country === "MEX" ? "https://www.banxico.org.mx/cep/" : "Transacción completada en el banco destino.",
       updated_at: new Date().toISOString(),
-    //   final_amount: finalAmount.toString(),
-    //   processing_step: "completed",
     })
 
     console.log("Claim processing completed successfully")
