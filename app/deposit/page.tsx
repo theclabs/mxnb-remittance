@@ -14,7 +14,7 @@ import QRCode from "react-qr-code";
 import Link from "next/link"
 import type { User } from "@/lib/auth"
 import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
-import { makeMockRequest } from '@/lib/bitso'
+import { makeMockRequest } from '@/lib/bitso/bitso'
 
 
 export default function DepositPage() {
