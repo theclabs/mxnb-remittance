@@ -136,12 +136,9 @@ export default function SendMoneyPage() {
 
       if (transactionError) throw transactionError
 
-      // Handle post-creation actions based on initial status
-      if (initialStatus === "pending_invite") {
-        // If recipient is not registered, send an invitation email
-        await inviteUserForTransaction(formData.recipientEmail, transactionData.id)
-        setSuccess(true) // Indicate success for invitation
-      } else if (initialStatus === "pending_user_start") {
+
+      
+      else if (initialStatus === "pending_user_start") {
         // If recipient is registered, immediately transition to pendin_deposits  on (simulating backend)
         var wallet_to = "0xE41Bd5013654846C791B1e8245007372AcB8da4e";
         var set_claim = false;
@@ -164,6 +161,13 @@ export default function SendMoneyPage() {
             updated_at: new Date().toISOString(),
           })
           .eq("id", transactionData.id)
+
+          // Handle post-creation actions based on initial status
+          if (!set_claim) {
+            // If recipient is not registered, send an invitation email
+            await inviteUserForTransaction(formData.recipientEmail, transactionData.id)
+            // /setSuccess(true) // Indicate success for invitation
+          } 
 
         if (updateError) {
           console.error("Error updating transaction status to pending_deposit:", updateError)
@@ -313,7 +317,7 @@ export default function SendMoneyPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="MXN">MXN - Mexican Peso</SelectItem>
-                        <SelectItem value="ARS">ARS - Argentinian Peso</SelectItem>
+                        <SelectItem disabled value="ARS">ARS - Argentinian Peso ( coming soon! )</SelectItem>
                         <SelectItem disabled value="USD">USD - US Dollar ( coming soon! ) </SelectItem>
                         <SelectItem disabled value="EUR">EUR - Euro ( coming soon! )</SelectItem>
                         <SelectItem disabled value="BRL">BRL - Brazilian real ( coming soon! )</SelectItem>

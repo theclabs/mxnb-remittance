@@ -15,6 +15,7 @@ import { ArrowLeft, Loader2, CreditCard, Building, AlertTriangle, Send } from "l
 import Link from "next/link"
 import type { User } from "@/lib/auth"
 import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
+import { localGetQuote } from "@/lib/bitso/bitso"
 
 
 
@@ -28,6 +29,7 @@ export default function TransactionDetailPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState("")
+  const [quote, setQuote] = useState<undefined|QuoteResponse>(undefined)
   const [bankDetails, setBankDetails] = useState<BankInfo>({
     accountNumber: "",
     routingNumber: "",
@@ -41,6 +43,22 @@ export default function TransactionDetailPage() {
   useEffect(() => {
     checkUserAndFetchTransaction()
   }, [])
+
+
+
+  useEffect(()=>{
+    if (transaction?.amount && transaction?.currency){
+      const to_currency: "MXN" | "ARS" = transaction.currency === "MXN" ? "ARS" : "MXN";
+      localGetQuote(transaction.currency, to_currency, Number(transaction.amount))
+      .then((resp)=>{
+        console.log(resp)
+        setQuote(resp)
+      })
+      .catch((e)=>{
+        console.error('Error Quote', e)
+      })
+    }
+  }, [bankDetails.country])
 
   const checkUserAndFetchTransaction = async () => {
     try {
@@ -119,6 +137,7 @@ export default function TransactionDetailPage() {
     } catch (err: any) {
       setError(err.message || "Failed to submit bank details")
     } finally {
+      router.push("/dashboard")
       setActionLoading(false)
     }
   }
@@ -261,6 +280,15 @@ Important: Please include the reference number in your transfer memo to ensure p
                     ${transaction.amount.toFixed(2)} {transaction.currency}
                   </p>
                 </div>
+                  {bankDetails.country === "ARG"  && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">You will receive</Label>
+                        <p className="text-2xl font-bold">
+                          ${quote?.payload.to_amount.toFixed(2)} {quote?.payload.to_currency}
+                        </p>
+                        <p className="text-sm text-gray-500">{quote?.payload.calculation_method}</p>
+                      </div>
+                  )}
                 <div>
                   <Label className="text-sm font-medium text-gray-500">Recipient</Label>
                   <p className="font-medium">{transaction.recipient_name}</p>
@@ -375,9 +403,10 @@ Important: Please include the reference number in your transfer memo to ensure p
                     <Label htmlFor="accountHolderName">Account Holder Name</Label>
                     <Input
                       id="accountHolderName"
-                      value={bankDetails.accountHolderName || transaction.recipient_name}
+                      value={bankDetails.accountHolderName}
                       onChange={(e) => setBankDetails((prev) => ({ ...prev, accountHolderName: e.target.value }))}
                       required
+                      placeholder="Your Name"
                     />
                   </div>
                   <div className="space-y-2">
@@ -387,6 +416,7 @@ Important: Please include the reference number in your transfer memo to ensure p
                       value={bankDetails.bankName}
                       onChange={(e) => setBankDetails((prev) => ({ ...prev, bankName: e.target.value }))}
                       required
+                      placeholder="Bank Name"
                     />
                   </div>
                   <div className="space-y-2">
@@ -395,7 +425,7 @@ Important: Please include the reference number in your transfer memo to ensure p
                       id="accountNumber"
                       value={bankDetails.accountNumber}
                       onChange={(e) => setBankDetails((prev) => ({ ...prev, accountNumber: e.target.value }))}
-                      required
+                      placeholder="001122334455"
                     />
                   </div>
                   <div className="space-y-2">
