@@ -5,6 +5,7 @@ export type TransactionStatus =
   | "completed"
   | "pending_claim"
   | "claiming"
+  | "processing"
 
 export interface TransactionStatusInfo {
   label: string
@@ -55,6 +56,13 @@ export const TRANSACTION_STATUSES: Record<TransactionStatus, TransactionStatusIn
   claiming: {
     label: "Processing Claim",
     description: "The recipient's claim is being processed, and funds are being transferred to their bank account.",
+    systemBehavior: "Backend processes the withdrawal to recipient's bank account.",
+    color: "text-indigo-800",
+    bgColor: "bg-indigo-100",
+  },
+  processing: {
+    label: "Sending Payment",
+    description: "Funds are being transferred to the bank account.",
     systemBehavior: "Backend processes the withdrawal to recipient's bank account.",
     color: "text-indigo-800",
     bgColor: "bg-indigo-100",
