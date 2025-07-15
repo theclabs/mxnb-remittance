@@ -1,18 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { getCurrentUser, signOut } from "@/lib/auth"
+import { UpdateUserMetadata, User as UserType, getCurrentUser, signOut } from "@/lib/auth"
 import { supabase } from "@/lib/supabase"
-import { ArrowUpRight, DollarSign, Send, User, LogOut, Plus } from "lucide-react"
+import { ArrowUpRight, DollarSign, LogOut, Plus, Send, User } from "lucide-react"
 import Link from "next/link"
-import { User as UserType, UpdateUserMetadata } from "@/lib/auth"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 // Import the transaction status utilities at the top:
-import { getStatusInfo, canUserTakeAction, type TransactionStatus } from "@/lib/transaction-status"
 import { usePortalWalletContext } from "@/app/context/PortalWalletContext"
+import { canUserTakeAction, getStatusInfo, type TransactionStatus } from "@/lib/transaction-status"
 
 // Update the Transaction interface to include new fields:
 interface Transaction {
@@ -38,7 +37,17 @@ export default function DashboardPage() {
     portal,
     eip155Address,
     mxnBalance,
+    getAssets
   } = usePortalWalletContext();
+
+    useEffect(() => {
+      const intervalId = setInterval(() => {
+        getAssets();
+      }, 5000); // 5000 ms = 5 segundos
+
+      // Cleanup para cuando el componente se desmonte
+      return () => clearInterval(intervalId);
+    }, []);
 
    useEffect(()=>{
     if (!portal) return;
