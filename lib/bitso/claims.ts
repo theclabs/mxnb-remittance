@@ -350,7 +350,7 @@ export async function processClaim(transaction: ClaimTransaction): Promise<void>
     const burnResponse = await burnMxnbTokens(numericAmount)
 
     await updateTransactionStatus(id, "processing", {
-      id: burnResponse.payload.id,
+    //   id: burnResponse.payload.id,
     })
 
     // Step 2: Handle currency-specific processing
@@ -374,6 +374,7 @@ export async function processClaim(transaction: ClaimTransaction): Promise<void>
     // Step 3: Mark as completed
     console.log("Step 3: Marking transaction as completed...")
     await updateTransactionStatus(id, "completed", {
+    //   id: burnResponse.payload.id,
       updated_at: new Date().toISOString(),
     //   final_amount: finalAmount.toString(),
     //   processing_step: "completed",
