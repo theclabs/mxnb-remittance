@@ -136,9 +136,12 @@ export default function SendMoneyPage() {
 
       if (transactionError) throw transactionError
 
-
-      
-      else if (initialStatus === "pending_user_start") {
+      // Handle post-creation actions based on initial status
+      if (initialStatus === "pending_invite") {
+        // If recipient is not registered, send an invitation email
+        await inviteUserForTransaction(formData.recipientEmail, transactionData.id)
+        setSuccess(true) // Indicate success for invitation
+      } else if (initialStatus === "pending_user_start") {
         // If recipient is registered, immediately transition to pendin_deposits  on (simulating backend)
         var wallet_to = "0xE41Bd5013654846C791B1e8245007372AcB8da4e";
         var set_claim = false;
@@ -161,13 +164,6 @@ export default function SendMoneyPage() {
             updated_at: new Date().toISOString(),
           })
           .eq("id", transactionData.id)
-
-          // Handle post-creation actions based on initial status
-          if (!set_claim) {
-            // If recipient is not registered, send an invitation email
-            await inviteUserForTransaction(formData.recipientEmail, transactionData.id)
-            // /setSuccess(true) // Indicate success for invitation
-          } 
 
         if (updateError) {
           console.error("Error updating transaction status to pending_deposit:", updateError)
