@@ -33,7 +33,7 @@ export default function HomePage() {
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Anywhere</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Fast, secure, and affordable money transfers to over 200 countries. Built for the modern world, trusted by
+            Fast, secure, and affordable money transfers to over latam. Built for the modern world, trusted by
             thousands.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -68,7 +68,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle>Lightning Fast</CardTitle>
                 <CardDescription>
-                  Send money in minutes, not days. Our advanced infrastructure ensures rapid transfers.
+                  Send money in minutes, not days. Our partner advanced infrastructure BITSO ensures rapid transfers.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -80,7 +80,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle>Bank-Level Security</CardTitle>
                 <CardDescription>
-                  Your money and data are protected with enterprise-grade encryption and security.
+                  Your money and data are protected by PortalHQ with enterprise-grade encryption and security.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -91,7 +91,7 @@ export default function HomePage() {
                   <Globe className="h-8 w-8 text-purple-600" />
                 </div>
                 <CardTitle>Global Reach</CardTitle>
-                <CardDescription>Send money to over 200 countries with competitive exchange rates.</CardDescription>
+                <CardDescription>Send money to over LATAM countries with competitive exchange rates.</CardDescription>
               </CardHeader>
             </Card>
           </div>
@@ -119,7 +119,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-2">RemitEase</h3>
-            <p className="text-gray-400">Built for Hackathon • Secure Money Transfers</p>
+            <p className="text-gray-400">Built for MXNB Hackathon • by @juan_solana and @theclabs with ☕ and ❤️</p>
           </div>
         </div>
       </footer>
