@@ -161,6 +161,7 @@ async function findUserByClabe(clabe: string): Promise<AuthUser | null> {
     // Find user with matching CLABE in user_metadata
     console.dir("listUsers() data")
     console.dir(data)
+    console.dir(clabe)
     const user = data.users.find((user) => user.user_metadata?.clabe === clabe)
 
     if (!user) {
