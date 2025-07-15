@@ -268,10 +268,27 @@ export async function withdrawArsToBank(
   }
 
   try {
-    const response = await makeBitsoRequest<BitsoWithdrawalResponse>("withdrawals", {
-      method: "POST",
-      body: withdrawalRequest,
-    })
+    // MOCK IT FOR NOW BECAUSE BITSO HASNT ENABLED ARS IN STAGE
+    // const response = await makeBitsoRequest<BitsoWithdrawalResponse>("withdrawals", {
+    //   method: "POST",
+    //   body: withdrawalRequest,
+    // })
+
+    const response: BitsoWithdrawalResponse = {
+        success: true,
+        payload: {
+            wid: "widMock",
+            status: "complete",
+            created_at: new Date().toISOString(),
+            currency: "ars",
+            method: "coealsa",
+            amount: amount.toString(),
+            asset: "ars",
+            details: {
+              origin_id: originId
+            }
+          }
+    }
 
     console.log("ARS withdrawal response:", response)
 
